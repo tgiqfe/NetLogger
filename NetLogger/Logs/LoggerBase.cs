@@ -78,10 +78,7 @@ namespace NetLogger.Logs
         /// <returns></returns>
         private async Task Outputter(int interval)
         {
-            //  テーブル名とHeadLineの名前用の文字列
-            string managerText = "manager";
-
-            var mngCol = _liteDB.GetCollection<DbManager>(managerText);
+            var mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
             mngCol.EnsureIndex(x => x.HeadLine, true);
             while (_during)
             {
@@ -90,7 +87,8 @@ namespace NetLogger.Logs
                 {
                     using (await _lock.LockAsync())
                     {
-                        var mngRec = mngCol.FindOne(x => x.HeadLine == managerText) ?? new DbManager(managerText);
+                        var mngTemp = mngCol.FindAll().ToArray();
+                        var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
                         var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
 
                         using (var sw = new StreamWriter(_logFilePath, true, Encoding.UTF8))
@@ -108,7 +106,7 @@ namespace NetLogger.Logs
                         {
                             _liteDB.Dispose();
                             SetTodayLog();
-                            mngCol = _liteDB.GetCollection<DbManager>(managerText);
+                            mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
                             mngCol.EnsureIndex(x => x.HeadLine, true);
                         }
 
@@ -117,6 +115,8 @@ namespace NetLogger.Logs
                 }
             }
         }
+
+
 
         #region Close method
 

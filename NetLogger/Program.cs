@@ -4,7 +4,7 @@ using NetLogger.Logs;
 using (LoggerBase<LogbodyBase> logger = new NetLogger.Logs.LoggerBase<LogbodyBase>(
     @"D:\Test\Log",
     "sample",
-    10000))
+    3000))
 {
     LogbodyBase body1 = new LogbodyBase()
     {

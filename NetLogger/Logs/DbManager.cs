@@ -9,14 +9,15 @@ namespace NetLogger.Logs
 {
     internal class DbManager
     {
+        public const string HEAD_LINE = "manager";
+
         [BsonId]
-        public string HeadLine { get; set; }
+        public string HeadLine { get; set; } = HEAD_LINE;
         public long LastSerial { get; set; }
         public DateTime Date { get; set; }
 
-        public DbManager(string headLine)
+        public DbManager()
         {
-            this.HeadLine = headLine;
             this.Date = DateTime.Today;
         }
     }
