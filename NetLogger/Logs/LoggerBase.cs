@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 namespace NetLogger.Logs
 {
     internal class LoggerBase<T> :
-        IDisposable,
-        NetLogger.Worker.IBackgroundRepeat
+        IDisposable, NetLogger.Worker.IBackgroundRepeat
         where T : LogbodyBase
     {
         private static AsyncLock _lock = null;
@@ -26,8 +25,6 @@ namespace NetLogger.Logs
         private long _serial = 0;
         private bool _during = true;
         private bool _stored = false;
-
-
 
         public LoggerBase(string logDir, string logPreName, int outputInterval)
         {
@@ -110,58 +107,11 @@ namespace NetLogger.Logs
             }
         }
 
-        /// <summary>
-        /// 非同期でファイルに出力
-        /// </summary>
-        /// <param name="interval"></param>
-        /// <returns></returns>
-        private async Task OutputRepeatAsync(int interval)
-        {
-            var mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
-            mngCol.EnsureIndex(x => x.HeadLine, true);
-            while (_during)
-            {
-                await Task.Delay(interval);
-                if (_stored)
-                {
-                    using (await _lock.LockAsync())
-                    {
-                        var mngTemp = mngCol.FindAll().ToArray();
-                        var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
-                        var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
-
-                        using (var sw = new StreamWriter(_logFilePath, true, Encoding.UTF8))
-                        {
-                            foreach (var item in result)
-                            {
-                                sw.WriteLine($"[{item.Date}][{item.Level}]{item.Title} {item.Message}");
-                                mngRec.LastSerial = item.Serial;
-                            }
-                        }
-                        mngCol.Upsert(mngRec);
-
-                        //  日にちをまたいだ場合
-                        if (mngRec.Date != DateTime.Today)
-                        {
-                            _liteDB.Dispose();
-                            SetTodayLog();
-                            mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
-                            mngCol.EnsureIndex(x => x.HeadLine, true);
-                        }
-
-                        _stored = false;
-                    }
-                }
-            }
-        }
-
         private async Task OutputOnceAsync()
         {
-            var mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
-            mngCol.EnsureIndex(x => x.HeadLine, true);
             using (await _lock.LockAsync())
             {
-                var mngTemp = mngCol.FindAll().ToArray();
+                var mngTemp = _mngCol.FindAll().ToArray();
                 var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
                 var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
 
@@ -173,7 +123,7 @@ namespace NetLogger.Logs
                         mngRec.LastSerial = item.Serial;
                     }
                 }
-                mngCol.Upsert(mngRec);
+                _mngCol.Upsert(mngRec);
 
                 _stored = false;
             }
@@ -184,7 +134,6 @@ namespace NetLogger.Logs
 
         public virtual void Close()
         {
-            _during = false;
             OutputOnceAsync().Wait();
             if (_liteDB != null) { _liteDB.Dispose(); _liteDB = null; }
         }

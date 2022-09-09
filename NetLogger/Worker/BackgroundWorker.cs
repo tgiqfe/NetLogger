@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Worker
 {
-    internal class BackgroundWorker
+    internal class BackgroundWorker : IDisposable
     {
         public bool Running = false;
         public int Interval = 5000;
@@ -25,14 +25,46 @@ namespace NetLogger.Worker
         {
             while (this.Running)
             {
-                await Task.Delay(this.Interval);
-                Console.WriteLine("aaaa");
-
                 foreach (var repeatTarget in this.RepeatTargets)
                 {
                     await repeatTarget.Work();
                 }
+                await Task.Delay(this.Interval);
             }
         }
+
+
+
+        #region Close method
+
+        public virtual void Close()
+        {
+            this.Running = false;
+        }
+
+        #endregion
+        #region Dispose
+
+        private bool disposedValue;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Close();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }
