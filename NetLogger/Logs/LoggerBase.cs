@@ -40,7 +40,7 @@ namespace NetLogger.Logs
             SetTodayLog();
 
             //  非同期でログファイルへ出力
-            Outputter(outputInterval).ConfigureAwait(false);
+            OutputAsync(outputInterval).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace NetLogger.Logs
         /// </summary>
         /// <param name="interval"></param>
         /// <returns></returns>
-        private async Task Outputter(int interval)
+        private async Task OutputAsync(int interval)
         {
             var mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
             mngCol.EnsureIndex(x => x.HeadLine, true);
@@ -116,7 +116,29 @@ namespace NetLogger.Logs
             }
         }
 
+        private async Task Output()
+        {
+            var mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
+            mngCol.EnsureIndex(x => x.HeadLine, true);
+            using (await _lock.LockAsync())
+            {
+                var mngTemp = mngCol.FindAll().ToArray();
+                var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
+                var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
 
+                using (var sw = new StreamWriter(_logFilePath, true, Encoding.UTF8))
+                {
+                    foreach (var item in result)
+                    {
+                        sw.WriteLine($"[{item.Date}][{item.Level}]{item.Title} {item.Message}");
+                        mngRec.LastSerial = item.Serial;
+                    }
+                }
+                mngCol.Upsert(mngRec);
+
+                _stored = false;
+            }
+        }
 
         #region Close method
 
@@ -130,6 +152,8 @@ namespace NetLogger.Logs
 
         public virtual void Close()
         {
+            _during = false;
+            Output().Wait();
             if (_liteDB != null) { _liteDB.Dispose(); _liteDB = null; }
         }
 
