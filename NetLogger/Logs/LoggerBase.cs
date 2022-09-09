@@ -118,6 +118,7 @@ namespace NetLogger.Logs
             }
         }
 
+
         #region Close method
 
         public virtual async Task CloseAsync()
