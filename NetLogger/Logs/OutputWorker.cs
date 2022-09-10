@@ -4,32 +4,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetLogger.Worker
+namespace NetLogger.Logs
 {
-    internal class BackgroundWorker : IDisposable
+    internal class OutputWorker : IDisposable
     {
         public bool Running = false;
         public int Interval = 5000;
 
-        public List<IBackgroundRepeat> RepeatTargets = new List<IBackgroundRepeat>();
+        public List<IRepeatable> RepeatTargets = null;
 
-        public BackgroundWorker()
+        public OutputWorker()
         {
-            this.RepeatTargets = new();
+            RepeatTargets = new();
 
-            this.Running = true;
+            Running = true;
             Run().ConfigureAwait(false);
         }
 
         public async Task Run()
         {
-            while (this.Running)
+            while (Running)
             {
-                foreach (var repeatTarget in this.RepeatTargets)
+                foreach (var repeatTarget in RepeatTargets)
                 {
                     await repeatTarget.Work();
                 }
-                await Task.Delay(this.Interval);
+                await Task.Delay(Interval);
             }
         }
 
@@ -39,7 +39,7 @@ namespace NetLogger.Worker
 
         public virtual void Close()
         {
-            this.Running = false;
+            Running = false;
         }
 
         #endregion

@@ -1,6 +1,5 @@
 ﻿using NetLogger;
 using NetLogger.Logs;
-using NetLogger.Worker;
 
 LogbodyBase body1 = new LogbodyBase()
 {
@@ -31,12 +30,9 @@ LogbodyBase body3 = new LogbodyBase()
 };
 
 
-using (LoggerBase<LogbodyBase> logger = new NetLogger.Logs.LoggerBase<LogbodyBase>(
-    @"D:\Test\Log",
-    "sample",
-    3000))
+using (Logger<LogbodyBase> logger = new NetLogger.Logs.Logger<LogbodyBase>(@"D:\Test\Log"))
 {
-    BackgroundWorker worker = new BackgroundWorker();
+    OutputWorker worker = new OutputWorker();
     worker.RepeatTargets.Add(logger);
 
 

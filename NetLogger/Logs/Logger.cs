@@ -2,46 +2,45 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    internal class LoggerBase<T> :
-        IDisposable, NetLogger.Worker.IBackgroundRepeat
+    internal class Logger<T> :
+        IDisposable, IRepeatable
         where T : LogbodyBase
     {
         private static AsyncLock _lock = null;
-        private string _logDir = null;
-        private string _logPreName = null;
-        private string _logFilePath = null;
-        private string _logDbPath = null;
+        
+        public string LogDir = null;
+        public string LogFilePath = null;
+        public string LogDbPath = null;
 
         private LiteDatabase _liteDB = null;
         private ILiteCollection<T> _collection = null;
-        private ILiteCollection<DbManager> _mngCol = null;
+
+        //private ILiteCollection<DbManager> _managerCollection = null;
+        DbManager _manager = null;
+
 
         private long _serial = 0;
-        private bool _during = true;
         private bool _stored = false;
 
-        public LoggerBase(string logDir, string logPreName, int outputInterval)
+        public Logger(string logDir)
         {
             _lock ??= new AsyncLock();
 
-            this._logDir = logDir;
+            this.LogDir = logDir;
             if (!Directory.Exists(logDir))
             {
                 Directory.CreateDirectory(logDir);
             }
-            this._logPreName = logPreName;
-
+            
             //  ログ出力先情報をセット
             SetTodayLog();
-
-            //  非同期でログファイルへ出力
-            //OutputRepeatAsync(outputInterval).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -49,13 +48,18 @@ namespace NetLogger.Logs
         /// </summary>
         private void SetTodayLog()
         {
-            string today = DateTime.Now.ToString("yyyyMMdd");
-            _logFilePath = Path.Combine(_logDir, $"{_logPreName}_{today}.log");
-            _logDbPath = Path.Combine(_logDir, $"{_logPreName}_{today}.db");
+            string preName = typeof(T).GetField("Name").GetValue(typeof(T)) as string;
 
-            _liteDB = new LiteDatabase($"Filename={_logDbPath};Connection=shared");
-            _collection = _liteDB.GetCollection<T>(_logPreName);
-            _mngCol = DbManager.GetCollection(_liteDB);
+            string today = DateTime.Now.ToString("yyyyMMdd");
+            this.LogFilePath = Path.Combine(LogDir, $"{preName}_{today}.log");
+            this.LogDbPath = Path.Combine(LogDir, $"{preName}_{today}.db");
+
+            _liteDB = new LiteDatabase($"Filename={LogDbPath};Connection=shared");
+            _collection = _liteDB.GetCollection<T>(preName);
+
+            //_managerCollection = DbManager.GetCollection(_liteDB);
+            _manager = new DbManager(_liteDB);
+
             _serial = DateTime.Now.Ticks;
         }
 
@@ -67,6 +71,7 @@ namespace NetLogger.Logs
         {
             using (await _lock.LockAsync())
             {
+
                 logBody.Serial = _serial++;
                 _collection.Upsert(logBody);
                 _stored = true;
@@ -79,27 +84,35 @@ namespace NetLogger.Logs
             {
                 using (await _lock.LockAsync())
                 {
-                    var mngTemp = _mngCol.FindAll().ToArray();
-                    var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
-                    var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
+                    long lastSerial = _manager.GetLastSerial(reload: true);
 
-                    using (var sw = new StreamWriter(_logFilePath, true, Encoding.UTF8))
+                    //var mngTemp = _managerCollection.FindAll().ToArray();
+                    //var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
+                    //var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
+                    var result = _collection.Query().Where(x => x.Serial > lastSerial).ToList();
+
+                    using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
                     {
                         foreach (var item in result)
                         {
                             sw.WriteLine($"[{item.Date}][{item.Level}]{item.Title} {item.Message}");
-                            mngRec.LastSerial = item.Serial;
+                            //mngRec.LastSerial = item.Serial;
+                            _manager.SetLastSerial(item.Serial);
                         }
                     }
-                    _mngCol.Upsert(mngRec);
+                    //_managerCollection.Upsert(mngRec);
+                    _manager.Upsert();
 
                     //  日にちをまたいだ場合
-                    if (mngRec.Date != DateTime.Today)
+                    DateTime dt = _manager.GetDate();
+
+                    //if (mngRec.Date != DateTime.Today)
+                    if (dt != DateTime.Today)
                     {
                         _liteDB.Dispose();
                         SetTodayLog();
-                        _mngCol = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
-                        _mngCol.EnsureIndex(x => x.HeadLine, true);
+                        //_managerCollection = _liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
+                        //_managerCollection.EnsureIndex(x => x.HeadLine, true);
                     }
 
                     _stored = false;
@@ -111,19 +124,24 @@ namespace NetLogger.Logs
         {
             using (await _lock.LockAsync())
             {
-                var mngTemp = _mngCol.FindAll().ToArray();
-                var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
-                var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
+                long lastSerial = _manager.GetLastSerial(reload: true);
 
-                using (var sw = new StreamWriter(_logFilePath, true, Encoding.UTF8))
+                //var mngTemp = _managerCollection.FindAll().ToArray();
+                //var mngRec = mngTemp.Length > 0 ? mngTemp[0] : new DbManager();
+                //var result = _collection.Query().Where(x => x.Serial > mngRec.LastSerial).ToList();
+                var result = _collection.Query().Where(x => x.Serial > lastSerial).ToList();
+
+                using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
                 {
                     foreach (var item in result)
                     {
                         sw.WriteLine($"[{item.Date}][{item.Level}]{item.Title} {item.Message}");
-                        mngRec.LastSerial = item.Serial;
+                        //mngRec.LastSerial = item.Serial;
+                        _manager.SetLastSerial(item.Serial);
                     }
                 }
-                _mngCol.Upsert(mngRec);
+                //_managerCollection.Upsert(mngRec);
+                _manager.Upsert();
 
                 _stored = false;
             }

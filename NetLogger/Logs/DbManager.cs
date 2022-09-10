@@ -9,23 +9,49 @@ namespace NetLogger.Logs
 {
     internal class DbManager
     {
-        public const string HEAD_LINE = "manager";
+        const string HEAD_LINE = "manager";
 
-        [BsonId]
-        public string HeadLine { get; set; } = HEAD_LINE;
-        public long LastSerial { get; set; }
-        public DateTime Date { get; set; }
+        private ILiteCollection<DbManagerItem> _collection = null;
 
-        public DbManager()
+        private DbManagerItem _cachedDbManager = null;
+
+        public DbManager(LiteDatabase liteDB)
         {
-            this.Date = DateTime.Today;
+            _collection = liteDB.GetCollection<DbManagerItem>(HEAD_LINE);
+            _collection.EnsureIndex(x => x.HeadLine, true);
         }
 
-        public static ILiteCollection<DbManager> GetCollection(LiteDatabase liteDB)
+        public long GetLastSerial(bool reload = false)
         {
-            var collection = liteDB.GetCollection<DbManager>(DbManager.HEAD_LINE);
-            collection.EnsureIndex(x => x.HeadLine, true);
-            return collection;
+            if (reload)
+            {
+                var record = _collection.FindAll().ToArray();
+                this._cachedDbManager = record.Length > 0 ? record[0] : new DbManagerItem();
+            }
+            return _cachedDbManager.LastSerial;
+        }
+
+        public DateTime GetDate(bool reload = false)
+        {
+            if (reload)
+            {
+                var record = _collection.FindAll().ToArray();
+                this._cachedDbManager = record.Length > 0 ? record[0] : new DbManagerItem();
+            }
+            return _cachedDbManager.Date;
+        }
+
+        public void SetLastSerial(long serial)
+        {
+            _cachedDbManager.LastSerial = serial;
+        }
+
+        public void Upsert()
+        {
+            if (_cachedDbManager != null)
+            {
+                _collection.Upsert(_cachedDbManager);
+            }
         }
     }
 }

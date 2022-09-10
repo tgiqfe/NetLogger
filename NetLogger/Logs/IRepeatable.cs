@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetLogger.Worker
+namespace NetLogger.Logs
 {
-    internal interface IBackgroundRepeat
+    internal interface IRepeatable
     {
         Task Work();
     }
