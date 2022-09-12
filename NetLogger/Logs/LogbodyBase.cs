@@ -1,7 +1,7 @@
 ﻿
 namespace NetLogger.Logs
 {
-    internal class LogbodyBase
+    public class LogbodyBase
     {
         /// <summary>
         /// ログファイル名の接頭部分

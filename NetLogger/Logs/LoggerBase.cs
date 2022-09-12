@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    internal class Logger<T> :
+    public class LoggerBase<T> :
         IDisposable, IRepeatable
         where T : LogbodyBase
     {
@@ -36,7 +36,7 @@ namespace NetLogger.Logs
             }
         }
 
-        public Logger(string logDir)
+        public LoggerBase(string logDir)
         {
             _lock ??= new AsyncLock();
 
@@ -85,12 +85,22 @@ namespace NetLogger.Logs
 
         public async Task Work()
         {
+            await OutputAsync();
+        }
+
+        public void ResetDate()
+        {
+            _liteDB.Dispose();
+            SetTodayLog();
+        }
+
+        private async Task OutputAsync()
+        {
             if (_stored)
             {
                 using (await _lock.LockAsync())
                 {
                     long lastSerial = _manager.GetLastSerial(reload: true);
-
                     var result = _collection.Query().Where(x => x.Serial > lastSerial).ToList();
 
                     using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
@@ -103,48 +113,8 @@ namespace NetLogger.Logs
                     }
                     _manager.Upsert();
 
-                    /*
-                    //  日にちをまたいだ場合
-                    DateTime dt = _manager.GetDate();
-                    if (dt != DateTime.Today)
-                    {
-                        _liteDB.Dispose();
-                        SetTodayLog();
-                    }
-                    */
-
                     _stored = false;
                 }
-            }
-        }
-
-        public void ResetDate()
-        {
-            _liteDB.Dispose();
-            SetTodayLog();
-        }
-
-
-
-        private async Task OutputOnceAsync()
-        {
-            using (await _lock.LockAsync())
-            {
-                long lastSerial = _manager.GetLastSerial(reload: true);
-
-                var result = _collection.Query().Where(x => x.Serial > lastSerial).ToList();
-
-                using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
-                {
-                    foreach (var item in result)
-                    {
-                        sw.WriteLine($"[{item.Date}][{item.Level}]{item.Title} {item.Message}");
-                        _manager.SetLastSerial(item.Serial);
-                    }
-                }
-                _manager.Upsert();
-
-                _stored = false;
             }
         }
 
@@ -153,7 +123,7 @@ namespace NetLogger.Logs
 
         public virtual void Close()
         {
-            OutputOnceAsync().Wait();
+            OutputAsync().Wait();
             if (_liteDB != null) { _liteDB.Dispose(); _liteDB = null; }
         }
 
