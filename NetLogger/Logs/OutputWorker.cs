@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    internal class OutputWorker : IDisposable
+    public class OutputWorker : IDisposable
     {
         public bool Running = false;
         public int Interval = 5000;

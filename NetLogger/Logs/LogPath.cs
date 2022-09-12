@@ -1,7 +1,7 @@
 ﻿
 namespace NetLogger.Logs
 {
-    internal class LogPath
+    public class LogPath
     {
         private string _today = null;
         public string LogDir { get; private set; }

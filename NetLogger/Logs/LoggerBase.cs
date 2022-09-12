@@ -13,14 +13,14 @@ namespace NetLogger.Logs
         IDisposable, IRepeatable
         where T : LogbodyBase
     {
-        private static AsyncLock _lock = null;
+        protected static AsyncLock _lock = null;
 
         public string LogDir = null;
         public string LogFilePath = null;
         public string LogDbPath = null;
 
-        private LiteDatabase _liteDB = null;
-        private ILiteCollection<T> _collection = null;
+        protected LiteDatabase _liteDB = null;
+        protected ILiteCollection<T> _collection = null;
 
         private DbManager _manager = null;
 
@@ -94,7 +94,7 @@ namespace NetLogger.Logs
             SetTodayLog();
         }
 
-        private async Task OutputAsync()
+        public async Task OutputAsync()
         {
             if (_stored)
             {

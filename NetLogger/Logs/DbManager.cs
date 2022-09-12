@@ -7,7 +7,7 @@ using LiteDB;
 
 namespace NetLogger.Logs
 {
-    internal class DbManager
+    public class DbManager
     {
         const string HEAD_LINE = "manager";
 

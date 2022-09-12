@@ -7,17 +7,16 @@ using LiteDB;
 
 namespace NetLogger.Logs
 {
-    internal class DbManagerItem
+    public class DbManagerItem
     {
-        const string HEAD_LINE = "manager";
-
         [BsonId]
-        public string HeadLine { get; set; } = HEAD_LINE;
+        public string HeadLine { get; set; } 
         public long LastSerial { get; set; }
         public DateTime Date { get; set; }
 
         public DbManagerItem()
         {
+            this.HeadLine = "manager";
             this.Date = DateTime.Today;
         }
     }
