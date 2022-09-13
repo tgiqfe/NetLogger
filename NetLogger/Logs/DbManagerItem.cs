@@ -15,5 +15,10 @@ namespace NetLogger.Logs
         public string HeadLine { get; set; } = HEAD_LINE;
         public long LastSerial { get; set; }
         public DateTime Date { get; set; }
+
+        public DbManagerItem()
+        {
+            this.Date = DateTime.Today;
+        }
     }
 }

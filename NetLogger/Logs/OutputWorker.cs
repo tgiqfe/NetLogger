@@ -28,6 +28,11 @@ namespace NetLogger.Logs
                 foreach (var repeatTarget in RepeatTargets)
                 {
                     await repeatTarget.Work();
+
+                    if (repeatTarget.IsToday == false)
+                    {
+                        repeatTarget.ResetDate();
+                    }
                 }
                 await Task.Delay(Interval);
             }

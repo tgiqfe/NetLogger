@@ -13,7 +13,7 @@ namespace NetLogger.Logs
 
         private ILiteCollection<DbManagerItem> _collection = null;
 
-        private DbManagerItem _cachedDbManager = null;
+        private DbManagerItem _cachedItem = null;
 
         public DbManager(LiteDatabase liteDB)
         {
@@ -23,34 +23,34 @@ namespace NetLogger.Logs
 
         public long GetLastSerial(bool reload = false)
         {
-            if (reload)
+            if (_cachedItem == null || reload)
             {
                 var record = _collection.FindAll().ToArray();
-                this._cachedDbManager = record.Length > 0 ? record[0] : new DbManagerItem();
+                this._cachedItem = record.Length > 0 ? record[0] : new DbManagerItem();
             }
-            return _cachedDbManager.LastSerial;
+            return _cachedItem.LastSerial;
         }
 
         public DateTime GetDate(bool reload = false)
         {
-            if (reload)
+            if (_cachedItem == null || reload)
             {
                 var record = _collection.FindAll().ToArray();
-                this._cachedDbManager = record.Length > 0 ? record[0] : new DbManagerItem();
+                this._cachedItem = record.Length > 0 ? record[0] : new DbManagerItem();
             }
-            return _cachedDbManager.Date;
+            return _cachedItem.Date;
         }
 
         public void SetLastSerial(long serial)
         {
-            _cachedDbManager.LastSerial = serial;
+            _cachedItem.LastSerial = serial;
         }
 
         public void Upsert()
         {
-            if (_cachedDbManager != null)
+            if (_cachedItem != null)
             {
-                _collection.Upsert(_cachedDbManager);
+                _collection.Upsert(_cachedItem);
             }
         }
     }

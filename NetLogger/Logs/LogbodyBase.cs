@@ -8,7 +8,7 @@ namespace NetLogger.Logs
         /// 継承するクラス側で、同じ名前で定数指定する。
         /// パラメータ指定の強制方法について、良いアイディアが見当たらないので。。。
         /// </summary>
-        public const string Name = "AAAA";
+        public const string Name = "_";
 
         public long Serial { get; set; }
         public DateTime Date { get; set; }

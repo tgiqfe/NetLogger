@@ -14,7 +14,7 @@ namespace NetLogger.Logs
         where T : LogbodyBase
     {
         private static AsyncLock _lock = null;
-        
+
         public string LogDir = null;
         public string LogFilePath = null;
         public string LogDbPath = null;
@@ -22,11 +22,19 @@ namespace NetLogger.Logs
         private LiteDatabase _liteDB = null;
         private ILiteCollection<T> _collection = null;
 
-        DbManager _manager = null;
-
+        private DbManager _manager = null;
 
         private long _serial = 0;
         private bool _stored = false;
+
+        public bool? IsToday
+        {
+            get
+            {
+                if (_manager == null) return null;
+                return _manager.GetDate() == DateTime.Today;
+            }
+        }
 
         public Logger(string logDir)
         {
@@ -37,7 +45,7 @@ namespace NetLogger.Logs
             {
                 Directory.CreateDirectory(logDir);
             }
-            
+
             //  ログ出力先情報をセット
             SetTodayLog();
         }
@@ -57,7 +65,6 @@ namespace NetLogger.Logs
             _collection = _liteDB.GetCollection<T>(preName);
 
             _manager = new DbManager(_liteDB);
-
             _serial = DateTime.Now.Ticks;
         }
 
@@ -96,6 +103,7 @@ namespace NetLogger.Logs
                     }
                     _manager.Upsert();
 
+                    /*
                     //  日にちをまたいだ場合
                     DateTime dt = _manager.GetDate();
                     if (dt != DateTime.Today)
@@ -103,11 +111,20 @@ namespace NetLogger.Logs
                         _liteDB.Dispose();
                         SetTodayLog();
                     }
+                    */
 
                     _stored = false;
                 }
             }
         }
+
+        public void ResetDate()
+        {
+            _liteDB.Dispose();
+            SetTodayLog();
+        }
+
+
 
         private async Task OutputOnceAsync()
         {
