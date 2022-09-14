@@ -11,11 +11,13 @@ namespace NetLogger.Logs
 {
     public class LoggerBase<T> :
         IDisposable, IRepeatable
-        where T : LogbodyBase
     {
         protected static AsyncLock _lock = null;
 
         public string LogDir = null;
+        public string TableName = null;
+        public string LogName = null;
+
         public string LogFilePath = null;
         public string LogDbPath = null;
 
@@ -24,7 +26,6 @@ namespace NetLogger.Logs
 
         private DbManager _manager = null;
 
-        private long _serial = 0;
         private bool _stored = false;
 
         public bool? IsToday
@@ -36,7 +37,7 @@ namespace NetLogger.Logs
             }
         }
 
-        public LoggerBase(string logDir)
+        public LoggerBase(string logDir, string tableName, string logName)
         {
             _lock ??= new AsyncLock();
 
@@ -45,6 +46,8 @@ namespace NetLogger.Logs
             {
                 Directory.CreateDirectory(logDir);
             }
+            this.TableName = tableName;
+            this.LogName = logName;
 
             //  ログ出力先情報をセット
             SetTodayLog();
@@ -55,17 +58,14 @@ namespace NetLogger.Logs
         /// </summary>
         private void SetTodayLog()
         {
-            string preName = typeof(T).GetField("Name").GetValue(typeof(T)) as string;
-
             string today = DateTime.Now.ToString("yyyyMMdd");
-            this.LogFilePath = Path.Combine(LogDir, $"{preName}_{today}.log");
-            this.LogDbPath = Path.Combine(LogDir, $"{preName}_{today}.db");
+            this.LogFilePath = Path.Combine(LogDir, $"{LogName}_{today}.log");
+            this.LogDbPath = Path.Combine(LogDir, $"{LogName}_{today}.db");
 
             _liteDB = new LiteDatabase($"Filename={LogDbPath};Connection=shared");
-            _collection = _liteDB.GetCollection<T>(preName);
+            _collection = _liteDB.GetCollection<T>(TableName);
 
             _manager = new DbManager(_liteDB);
-            _serial = DateTime.Now.Ticks;
         }
 
         /// <summary>
@@ -76,8 +76,6 @@ namespace NetLogger.Logs
         {
             using (await _lock.LockAsync())
             {
-
-                logBody.Serial = _serial++;
                 _collection.Upsert(logBody);
                 _stored = true;
             }
@@ -100,19 +98,18 @@ namespace NetLogger.Logs
             {
                 using (await _lock.LockAsync())
                 {
-                    long lastSerial = _manager.GetLastSerial(reload: true);
-                    var result = _collection.Query().Where(x => x.Serial > lastSerial).ToList();
+                    int lastIndex = _manager.GetLastIndex(reload: true);
 
+                    var cols = _collection.Query().Skip(lastIndex).ToArray();
                     using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
                     {
-                        foreach (var item in result)
+                        foreach (var item in cols)
                         {
-                            sw.WriteLine($"[{item.Date}][{item.Level}]{item.Title} {item.Message}");
-                            _manager.SetLastSerial(item.Serial);
+                            sw.WriteLine(item.ToString());
                         }
                     }
+                    _manager.SetLastIndex(cols.Length);
                     _manager.Upsert();
-
                     _stored = false;
                 }
             }

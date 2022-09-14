@@ -10,6 +10,7 @@ namespace NetLogger.Logs
     public class DbManager
     {
         const string HEAD_LINE = "manager";
+        const string MANAGER_TABLE = "mngtable";
 
         private ILiteCollection<DbManagerItem> _collection = null;
 
@@ -17,46 +18,32 @@ namespace NetLogger.Logs
 
         public DbManager(LiteDatabase liteDB)
         {
-            _collection = liteDB.GetCollection<DbManagerItem>(HEAD_LINE);
+            _collection = liteDB.GetCollection<DbManagerItem>(MANAGER_TABLE);
             _collection.EnsureIndex(x => x.HeadLine, true);
         }
-
-        public long GetLastSerial(bool reload = false)
-        {
-            if (_cachedItem == null || reload)
-            {
-                var record = _collection.FindAll().ToArray();
-                this._cachedItem = record.Length > 0 ? record[0] : new DbManagerItem();
-            }
-            return _cachedItem.LastSerial;
-        }
-
 
         public int GetLastIndex(bool reload = false)
         {
             if (_cachedItem == null || reload)
             {
                 var record = _collection.FindAll().ToArray();
-                this._cachedItem = record.Length > 0 ? record[0] : new DbManagerItem();
+                this._cachedItem = record.Length > 0 ? 
+                    record[0] : 
+                    new DbManagerItem() { Date = DateTime.Today, HeadLine = HEAD_LINE};
             }
             return _cachedItem.LastIndex;
         }
-
-
 
         public DateTime GetDate(bool reload = false)
         {
             if (_cachedItem == null || reload)
             {
                 var record = _collection.FindAll().ToArray();
-                this._cachedItem = record.Length > 0 ? record[0] : new DbManagerItem();
+                this._cachedItem = record.Length > 0 ?
+                    record[0] :
+                    new DbManagerItem() { Date = DateTime.Today, HeadLine = HEAD_LINE };
             }
             return _cachedItem.Date;
-        }
-
-        public void SetLastSerial(long serial)
-        {
-            _cachedItem.LastSerial = serial;
         }
 
         public void SetLastIndex(int index)

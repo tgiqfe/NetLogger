@@ -7,7 +7,7 @@ namespace NetLogServer.Logs
 {
     public class DynamicLogger : LoggerBase<DynamicLogBody>
     {
-        public DynamicLogger(string logDir) : base(logDir)
+        public DynamicLogger(string logDir) : base(logDir, "", "")
         {
         }
 
