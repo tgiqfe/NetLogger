@@ -31,6 +31,19 @@ namespace NetLogger.Logs
             return _cachedItem.LastSerial;
         }
 
+
+        public int GetLastIndex(bool reload = false)
+        {
+            if (_cachedItem == null || reload)
+            {
+                var record = _collection.FindAll().ToArray();
+                this._cachedItem = record.Length > 0 ? record[0] : new DbManagerItem();
+            }
+            return _cachedItem.LastIndex;
+        }
+
+
+
         public DateTime GetDate(bool reload = false)
         {
             if (_cachedItem == null || reload)
@@ -44,6 +57,11 @@ namespace NetLogger.Logs
         public void SetLastSerial(long serial)
         {
             _cachedItem.LastSerial = serial;
+        }
+
+        public void SetLastIndex(int index)
+        {
+            _cachedItem.LastIndex = index;
         }
 
         public void Upsert()

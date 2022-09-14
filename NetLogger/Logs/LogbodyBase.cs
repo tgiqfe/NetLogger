@@ -19,5 +19,9 @@ namespace NetLogger.Logs
         public string Message { get; set; }
 
 
+        public override string ToString()
+        {
+            return $"[{this.Date.ToString("yyyy/MM/dd HH:mm:ss")}][{this.Level} {this.Title} {this.Message}";
+        }
     }
 }

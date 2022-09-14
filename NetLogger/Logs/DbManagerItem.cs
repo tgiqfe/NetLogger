@@ -12,6 +12,9 @@ namespace NetLogger.Logs
         [BsonId]
         public string HeadLine { get; set; } 
         public long LastSerial { get; set; }
+
+        public int LastIndex { get; set; }
+
         public DateTime Date { get; set; }
 
         public DbManagerItem()
