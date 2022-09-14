@@ -1,3 +1,4 @@
+using NetLogServer.Logs;
 using System;
 using System.Text;
 
@@ -14,13 +15,12 @@ var options = new System.Text.Json.JsonSerializerOptions()
 };
 
 
+var glogManager = new DynamicLogManager();
+
 #region Routing
 
 app.MapGet("/", () => "");
 app.MapPost("/", () => "");
-
-
-
 
 app.MapPost("/api/logger/{table}", (HttpContext context) =>
 {
@@ -30,9 +30,6 @@ app.MapPost("/api/logger/{table}", (HttpContext context) =>
         syncIOFeature.AllowSynchronousIO = true;
     }
     var table = context.Request.RouteValues["table"]?.ToString();
-
-
-
 });
 
 #endregion

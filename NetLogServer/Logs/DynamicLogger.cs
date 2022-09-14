@@ -5,9 +5,10 @@ using LiteDB;
 
 namespace NetLogServer.Logs
 {
-    public class DynamicLogger : LoggerBase<DynamicLogBody>
+    public class DynamicLogger : LoggerBase<BsonDocument>
     {
-        public DynamicLogger(string logDir) : base(logDir, "", "")
+        public DynamicLogger(string logDir, string tableName, string logName) :
+            base(logDir, tableName, logName)
         {
         }
 
@@ -22,9 +23,7 @@ namespace NetLogServer.Logs
                     using (var sr = new StreamReader(stream))
                     {
                         var doc = JsonSerializer.Deserialize(sr) as BsonDocument;
-
-                        //_collection.Insert(doc);
-
+                        _collection.Upsert(doc);
                     }
                 }
             }
