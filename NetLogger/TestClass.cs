@@ -1,11 +1,4 @@
-﻿using NetLogger.Logs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetLogger;
-
+﻿
 namespace NetLogger
 {
     internal class TestClass
@@ -18,7 +11,7 @@ namespace NetLogger
 
             using (var logger = new LoggerBase<LogbodyBase>(logDir, tableName, logName))
             {
-                var worker = new OutputWorker();
+                var worker = new BackgroundWorker();
                 worker.RepeatTargets.Add(logger);
 
                 int count = 1;

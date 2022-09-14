@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    public class LoggerBase<T> :
-        IDisposable, IRepeatable
+    public class LoggerBase<T> : IDisposable, IRepeatable
     {
         protected static AsyncLock _lock = null;
 
@@ -21,12 +20,29 @@ namespace NetLogger.Logs
         public string LogFilePath = null;
         public string LogDbPath = null;
 
+        #region Private,Protected
+
+        /// <summary>
+        /// LiteDBへのコネクション
+        /// </summary>
         protected LiteDatabase _liteDB = null;
+
+        /// <summary>
+        /// 本クラスで使用するテーブル
+        /// </summary>
         protected ILiteCollection<T> _collection = null;
 
+        /// <summary>
+        /// DB情報管理
+        /// </summary>
         private DbManager _manager = null;
 
+        /// <summary>
+        /// DBへ書き込み済み/未書き込み
+        /// </summary>
         private bool _stored = false;
+
+        #endregion
 
         public bool? IsToday
         {
@@ -81,18 +97,11 @@ namespace NetLogger.Logs
             }
         }
 
-        public async Task Work()
-        {
-            await OutputAsync();
-        }
-
-        public void ResetDate()
-        {
-            _liteDB.Dispose();
-            SetTodayLog();
-        }
-
-        public async Task OutputAsync()
+        /// <summary>
+        /// 手動or他メソッドからの呼び出しで、DBからファイルへ書き込み
+        /// </summary>
+        /// <returns></returns>
+        public async Task OutputTextAsync()
         {
             if (_stored)
             {
@@ -115,12 +124,25 @@ namespace NetLogger.Logs
             }
         }
 
+        #region Repeatable
 
+        public async Task Work()
+        {
+            await OutputTextAsync();
+        }
+
+        public void ResetDate()
+        {
+            _liteDB.Dispose();
+            SetTodayLog();
+        }
+
+        #endregion
         #region Close method
 
         public virtual void Close()
         {
-            OutputAsync().Wait();
+            OutputTextAsync().Wait();
             if (_liteDB != null) { _liteDB.Dispose(); _liteDB = null; }
         }
 

@@ -15,7 +15,7 @@ var options = new System.Text.Json.JsonSerializerOptions()
 };
 
 
-var glogManager = new DynamicLogManager();
+var dlogManager = new DynamicLogManager();
 
 #region Routing
 
@@ -30,6 +30,7 @@ app.MapPost("/api/logger/{table}", (HttpContext context) =>
         syncIOFeature.AllowSynchronousIO = true;
     }
     var table = context.Request.RouteValues["table"]?.ToString();
+    dlogManager.Write(table, context.Request.Body);
 });
 
 #endregion

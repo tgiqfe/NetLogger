@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    public class OutputWorker : IDisposable
+    public class BackgroundWorker : IDisposable
     {
         public bool Running = false;
         public int Interval = 5000;
 
         public List<IRepeatable> RepeatTargets = null;
 
-        public OutputWorker()
+        public BackgroundWorker()
         {
             RepeatTargets = new();
 
@@ -27,8 +27,10 @@ namespace NetLogger.Logs
             {
                 foreach (var repeatTarget in RepeatTargets)
                 {
+                    //  通常Work
                     await repeatTarget.Work();
 
+                    //  日付リセット用処理
                     if (repeatTarget.IsToday == false)
                     {
                         repeatTarget.ResetDate();

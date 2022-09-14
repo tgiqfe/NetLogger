@@ -1,37 +1,33 @@
 ﻿using LiteDB;
-using NetLogger.Logs;
-using System.Collections.Generic;
-using System.IO;
 
 namespace NetLogServer.Logs
 {
     public class DynamicLogManager
     {
-        public Dictionary<string, LoggerBase<BsonDocument>> Session { get; set; }
-
-        private OutputWorker outputWorker = null;
+        private Dictionary<string, LoggerBase<BsonDocument>> _session { get; set; }
+        private BackgroundWorker _worker = null;
 
         public DynamicLogManager()
         {
-            this.Session = new();
-            this.outputWorker = new();
+            this._session = new();
+            this._worker = new();
         }
 
         public void Write(string table, Stream stream)
         {
             if (string.IsNullOrEmpty(table)) { return; }
 
-            if (!this.Session.ContainsKey(table))
+            if (!this._session.ContainsKey(table))
             {
                 //  ログ名もテーブル名に合わせる
                 var tempLogger = new LoggerBase<BsonDocument>(@"D:\Test\Loggggg", table, table);
-                outputWorker.RepeatTargets.Add(tempLogger);
-                this.Session[table] = tempLogger;
+                _worker.RepeatTargets.Add(tempLogger);
+                this._session[table] = tempLogger;
             }
 
             try
             {
-                var logger = Session[table];
+                var logger = _session[table];
                 using (var sr = new StreamReader(stream))
                 {
                     var doc = JsonSerializer.Deserialize(sr) as BsonDocument;

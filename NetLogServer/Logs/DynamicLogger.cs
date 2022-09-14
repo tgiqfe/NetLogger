@@ -1,7 +1,4 @@
-﻿using NetLogger.Logs;
-using System.IO;
-using LiteDB;
-//using System.Text.Json;
+﻿using LiteDB;
 
 namespace NetLogServer.Logs
 {
