@@ -22,7 +22,7 @@ namespace NetLogger.Logs
             _collection.EnsureIndex(x => x.HeadLine, true);
         }
 
-        public int GetLastIndex(bool reload = false)
+        public int GetLastTextIndex(bool reload = false)
         {
             if (_cachedItem == null || reload)
             {
@@ -31,7 +31,19 @@ namespace NetLogger.Logs
                     record[0] : 
                     new DbManagerItem() { Date = DateTime.Today, HeadLine = HEAD_LINE};
             }
-            return _cachedItem.LastIndex;
+            return _cachedItem.LastTextIndex;
+        }
+
+        public int GetLastRemoteIndex(bool reload = false)
+        {
+            if (_cachedItem == null || reload)
+            {
+                var record = _collection.FindAll().ToArray();
+                this._cachedItem = record.Length > 0 ?
+                    record[0] :
+                    new DbManagerItem() { Date = DateTime.Today, HeadLine = HEAD_LINE };
+            }
+            return _cachedItem.LastRemoteIndex;
         }
 
         public DateTime GetDate(bool reload = false)
@@ -46,9 +58,14 @@ namespace NetLogger.Logs
             return _cachedItem.Date;
         }
 
-        public void SetLastIndex(int index)
+        public void SetLastTextIndex(int index)
         {
-            _cachedItem.LastIndex = index;
+            _cachedItem.LastTextIndex = index;
+        }
+
+        public void SetLastRemoteIndex(int index)
+        {
+            _cachedItem.LastRemoteIndex = index;
         }
 
         public void Upsert()

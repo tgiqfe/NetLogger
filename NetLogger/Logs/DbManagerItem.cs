@@ -5,7 +5,8 @@ namespace NetLogger.Logs
     {
         [LiteDB.BsonId]
         public string HeadLine { get; set; } 
-        public int LastIndex { get; set; }
+        public int LastTextIndex { get; set; }
+        public int LastRemoteIndex { get; set; }
         public DateTime Date { get; set; }
     }
 }

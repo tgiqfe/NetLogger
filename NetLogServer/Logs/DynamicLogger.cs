@@ -4,8 +4,8 @@ namespace NetLogServer.Logs
 {
     public class DynamicLogger : LoggerBase<BsonDocument>
     {
-        public DynamicLogger(string logDir, string tableName, string logName) :
-            base(logDir, tableName, logName)
+        public DynamicLogger(string logDir, string tableName) :
+            base(logDir, tableName)
         {
         }
 

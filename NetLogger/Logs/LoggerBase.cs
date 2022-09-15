@@ -15,7 +15,6 @@ namespace NetLogger.Logs
 
         public string LogDir = null;
         public string TableName = null;
-        public string LogName = null;
 
         public string LogFilePath = null;
         public string LogDbPath = null;
@@ -53,7 +52,7 @@ namespace NetLogger.Logs
             }
         }
 
-        public LoggerBase(string logDir, string tableName, string logName)
+        public LoggerBase(string logDir, string tableName)
         {
             _lock ??= new AsyncLock();
 
@@ -63,7 +62,6 @@ namespace NetLogger.Logs
                 Directory.CreateDirectory(logDir);
             }
             this.TableName = tableName;
-            this.LogName = logName;
 
             //  ログ出力先情報をセット
             SetTodayLog();
@@ -75,8 +73,8 @@ namespace NetLogger.Logs
         private void SetTodayLog()
         {
             string today = DateTime.Now.ToString("yyyyMMdd");
-            this.LogFilePath = Path.Combine(LogDir, $"{LogName}_{today}.log");
-            this.LogDbPath = Path.Combine(LogDir, $"{LogName}_{today}.db");
+            this.LogFilePath = Path.Combine(LogDir, $"{TableName}_{today}.log");
+            this.LogDbPath = Path.Combine(LogDir, $"{TableName}_{today}.db");
 
             _liteDB = new LiteDatabase($"Filename={LogDbPath};Connection=shared");
             _collection = _liteDB.GetCollection<T>(TableName);
@@ -107,7 +105,7 @@ namespace NetLogger.Logs
             {
                 using (await _lock.LockAsync())
                 {
-                    int lastIndex = _manager.GetLastIndex(reload: true);
+                    int lastIndex = _manager.GetLastTextIndex(reload: true);
 
                     var cols = _collection.Query().Skip(lastIndex).ToArray();
                     using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
@@ -117,12 +115,52 @@ namespace NetLogger.Logs
                             sw.WriteLine(item.ToString());
                         }
                     }
-                    _manager.SetLastIndex(cols.Length);
+                    _manager.SetLastTextIndex(cols.Length);
                     _manager.Upsert();
                     _stored = false;
                 }
             }
         }
+
+        public async Task OutputTextAsync2()
+        {
+            int index = _manager.GetLastTextIndex(reload: true);
+            int count = _collection.FindAll().Count();
+            if (index < count)
+            {
+                using (await _lock.LockAsync())
+                {
+                    var items = _collection.Query().Skip(index).ToArray();
+                    using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
+                    {
+                        foreach (var item in items)
+                        {
+                            sw.WriteLine(item.ToString());
+                        }
+                    }
+                    _manager.SetLastTextIndex(count);
+                    _manager.Upsert();
+                }
+            }
+        }
+
+        public async Task OutputRemoteAsync2(string json)
+        {
+            int index = _manager.GetLastRemoteIndex(reload: true);
+            int count = _collection.FindAll().Count();
+            if (index < count)
+            {
+                using (await _lock.LockAsync())
+                {
+                    var items = _collection.Query().Skip(index).ToArray();
+                    
+                    //  ★ここでリモートログ転送
+
+                }
+            }
+        }
+
+
 
         #region Repeatable
 

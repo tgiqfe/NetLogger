@@ -9,7 +9,7 @@ namespace NetLogger
             string tableName = "TestLog";
             string logName = "Temp";
 
-            using (var logger = new LoggerBase<LogbodyBase>(logDir, tableName, logName))
+            using (var logger = new LoggerBase<LogbodyBase>(logDir, tableName))
             {
                 var worker = new BackgroundWorker();
                 worker.RepeatTargets.Add(logger);
