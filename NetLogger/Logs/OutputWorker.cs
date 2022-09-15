@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    internal class OutputWorker : IDisposable
+    public class OutputWorker : IDisposable
     {
         public bool Running = false;
         public int Interval = 5000;
@@ -28,6 +28,11 @@ namespace NetLogger.Logs
                 foreach (var repeatTarget in RepeatTargets)
                 {
                     await repeatTarget.Work();
+
+                    if (repeatTarget.IsToday == false)
+                    {
+                        repeatTarget.ResetDate();
+                    }
                 }
                 await Task.Delay(Interval);
             }

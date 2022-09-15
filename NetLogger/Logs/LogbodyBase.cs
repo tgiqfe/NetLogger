@@ -1,14 +1,14 @@
 ﻿
 namespace NetLogger.Logs
 {
-    internal class LogbodyBase
+    public class LogbodyBase
     {
         /// <summary>
         /// ログファイル名の接頭部分
         /// 継承するクラス側で、同じ名前で定数指定する。
         /// パラメータ指定の強制方法について、良いアイディアが見当たらないので。。。
         /// </summary>
-        public const string Name = "AAAA";
+        public const string Name = "_";
 
         public long Serial { get; set; }
         public DateTime Date { get; set; }
@@ -19,5 +19,9 @@ namespace NetLogger.Logs
         public string Message { get; set; }
 
 
+        public override string ToString()
+        {
+            return $"[{this.Date.ToString("yyyy/MM/dd HH:mm:ss")}][{this.Level} {this.Title} {this.Message}";
+        }
     }
 }

@@ -5,7 +5,7 @@ namespace NetLogger.Logs
     /// 参考)
     /// http://www.hanselman.com/blog/comparing-two-techniques-in-net-asynchronous-coordination-primitives
     /// </summary>
-    internal class AsyncLock
+    public class AsyncLock
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly Task<IDisposable> _releaser;

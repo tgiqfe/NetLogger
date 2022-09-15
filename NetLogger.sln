@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetLogger", "NetLogger\NetLogger.csproj", "{DAB08119-75FF-4960-9CDC-9460A5505ED2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetLogger", "NetLogger\NetLogger.csproj", "{DAB08119-75FF-4960-9CDC-9460A5505ED2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetLogServer", "NetLogServer\NetLogServer.csproj", "{47750770-BB2C-4372-B0FA-5D826989D0EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{DAB08119-75FF-4960-9CDC-9460A5505ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAB08119-75FF-4960-9CDC-9460A5505ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAB08119-75FF-4960-9CDC-9460A5505ED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47750770-BB2C-4372-B0FA-5D826989D0EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47750770-BB2C-4372-B0FA-5D826989D0EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47750770-BB2C-4372-B0FA-5D826989D0EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47750770-BB2C-4372-B0FA-5D826989D0EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

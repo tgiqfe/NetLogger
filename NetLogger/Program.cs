@@ -30,7 +30,7 @@ LogbodyBase body3 = new LogbodyBase()
 };
 
 
-using (Logger<LogbodyBase> logger = new NetLogger.Logs.Logger<LogbodyBase>(@"D:\Test\Log"))
+using (LoggerBase2<LogbodyBase> logger = new LoggerBase2<LogbodyBase>(@"D:\Test\Log"))
 {
     OutputWorker worker = new OutputWorker();
     worker.RepeatTargets.Add(logger);

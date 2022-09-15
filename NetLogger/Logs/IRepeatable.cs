@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    internal interface IRepeatable
+    public interface IRepeatable
     {
+        bool? IsToday { get; }
         Task Work();
+        void ResetDate();
     }
 }

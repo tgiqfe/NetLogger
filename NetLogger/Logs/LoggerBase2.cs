@@ -9,27 +9,33 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    internal class Logger<T> :
+    public class LoggerBase2<T> :
         IDisposable, IRepeatable
-        where T : LogbodyBase
     {
-        private static AsyncLock _lock = null;
-        
+        protected static AsyncLock _lock = null;
+
         public string LogDir = null;
         public string LogFilePath = null;
         public string LogDbPath = null;
 
-        private LiteDatabase _liteDB = null;
-        private ILiteCollection<T> _collection = null;
+        protected LiteDatabase _liteDB = null;
+        protected ILiteCollection<T> _collection = null;
 
-        //private ILiteCollection<DbManager> _managerCollection = null;
-        DbManager _manager = null;
-
+        private DbManager _manager = null;
 
         private long _serial = 0;
         private bool _stored = false;
 
-        public Logger(string logDir)
+        public bool? IsToday
+        {
+            get
+            {
+                if (_manager == null) return null;
+                return _manager.GetDate() == DateTime.Today;
+            }
+        }
+
+        public LoggerBase2(string logDir)
         {
             _lock ??= new AsyncLock();
 
@@ -38,7 +44,7 @@ namespace NetLogger.Logs
             {
                 Directory.CreateDirectory(logDir);
             }
-            
+
             //  ログ出力先情報をセット
             SetTodayLog();
         }
@@ -58,7 +64,6 @@ namespace NetLogger.Logs
             _collection = _liteDB.GetCollection<T>(preName);
 
             _manager = new DbManager(_liteDB);
-
             _serial = DateTime.Now.Ticks;
         }
 
@@ -71,7 +76,7 @@ namespace NetLogger.Logs
             using (await _lock.LockAsync())
             {
 
-                logBody.Serial = _serial++;
+                //logBody.Serial = _serial++;
                 _collection.Upsert(logBody);
                 _stored = true;
             }
@@ -79,11 +84,39 @@ namespace NetLogger.Logs
 
         public async Task Work()
         {
+            await OutputAsync();
+        }
+
+        public void ResetDate()
+        {
+            _liteDB.Dispose();
+            SetTodayLog();
+        }
+
+        public async Task OutputAsync()
+        {
             if (_stored)
             {
                 using (await _lock.LockAsync())
                 {
+                    int lastIndex = _manager.GetLastIndex(reload: true);
+
+                    var cols = _collection.Query().Skip(lastIndex).ToArray();
+                    using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
+                    {
+                        foreach (var item in cols)
+                        {
+                            sw.WriteLine(item.ToString());
+                        }
+                    }
+                    _manager.SetLastIndex(cols.Length);
+                    _manager.Upsert();
+                    _stored = false;
+
+
+                    /*
                     long lastSerial = _manager.GetLastSerial(reload: true);
+
                     var result = _collection.Query().Where(x => x.Serial > lastSerial).ToList();
 
                     using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
@@ -94,39 +127,12 @@ namespace NetLogger.Logs
                             _manager.SetLastSerial(item.Serial);
                         }
                     }
+                    
                     _manager.Upsert();
 
-                    //  日にちをまたいだ場合
-                    DateTime dt = _manager.GetDate();
-                    if (dt != DateTime.Today)
-                    {
-                        _liteDB.Dispose();
-                        SetTodayLog();
-                    }
-
                     _stored = false;
+                    */
                 }
-            }
-        }
-
-        private async Task OutputOnceAsync()
-        {
-            using (await _lock.LockAsync())
-            {
-                long lastSerial = _manager.GetLastSerial(reload: true);
-                var result = _collection.Query().Where(x => x.Serial > lastSerial).ToList();
-
-                using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
-                {
-                    foreach (var item in result)
-                    {
-                        sw.WriteLine($"[{item.Date}][{item.Level}]{item.Title} {item.Message}");
-                        _manager.SetLastSerial(item.Serial);
-                    }
-                }
-                _manager.Upsert();
-
-                _stored = false;
             }
         }
 
@@ -135,7 +141,7 @@ namespace NetLogger.Logs
 
         public virtual void Close()
         {
-            OutputOnceAsync().Wait();
+            OutputAsync().Wait();
             if (_liteDB != null) { _liteDB.Dispose(); _liteDB = null; }
         }
 
