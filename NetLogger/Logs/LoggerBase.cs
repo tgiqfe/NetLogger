@@ -100,36 +100,9 @@ namespace NetLogger.Logs
             }
         }
 
-        /// <summary>
-        /// 手動or他メソッドからの呼び出しで、DBからファイルへ書き込み
-        /// </summary>
-        /// <returns></returns>
         public async Task OutputTextAsync()
         {
-            if (_stored)
-            {
-                using (await _lock.LockAsync())
-                {
-                    int lastIndex = _manager.GetLastTextIndex(reload: true);
-
-                    var cols = _collection.Query().Skip(lastIndex).ToArray();
-                    using (var sw = new StreamWriter(LogFilePath, true, Encoding.UTF8))
-                    {
-                        foreach (var item in cols)
-                        {
-                            sw.WriteLine(item.ToString());
-                        }
-                    }
-                    _manager.SetLastTextIndex(cols.Length);
-                    _manager.Upsert();
-                    _stored = false;
-                }
-            }
-        }
-
-        public async Task OutputTextAsync2()
-        {
-            int index = _manager.GetLastTextIndex(reload: true);
+            int index = _manager.GetTextIndex(reload: true);
             int count = _collection.FindAll().Count() - 1;
             if (index < count)
             {
@@ -141,9 +114,9 @@ namespace NetLogger.Logs
                         foreach (var item in items)
                         {
                             sw.WriteLine(item.ToString());
+                            _manager.IncreaseTextIndex();
                         }
                     }
-                    _manager.SetLastTextIndex(count);
                     _manager.Upsert();
                 }
             }
@@ -151,9 +124,9 @@ namespace NetLogger.Logs
 
 
 
-        public async Task OutputRemoteAsync2()
+        public async Task OutputRemoteAsync()
         {
-            int index = _manager.GetLastRemoteIndex(reload: true);
+            int index = _manager.GetRemoteIndex(reload: true);
             int count = _collection.FindAll().Count() - 1;
             if (index < count)
             {
@@ -163,10 +136,17 @@ namespace NetLogger.Logs
                     foreach (var item in items)
                     {
                         string json = System.Text.Json.JsonSerializer.Serialize(item);
-
                         bool ret = await Session.SendAsync(TableName, json);
+                        if (ret)
+                        {
+                            _manager.IncreaseRemoteIndex();
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
-
+                    _manager.Upsert();
                 }
             }
         }

@@ -19,8 +19,15 @@ namespace NetLogger.Logs
 
         #endregion 
 
-        public LogServerSession(string server, int defPort, string defProtocol, int waitTime) :
-            this(new string[1] { server }, defPort, defProtocol, waitTime)
+        public LogServerSession(string uri, int waitTime) : this(new string[1] { uri }, 5000, "http", waitTime)
+        {
+        }
+
+        public LogServerSession(string[] uris, int waitTime) : this(uris, 5000, "http", waitTime)
+        {
+        }
+
+        public LogServerSession(string server, int defPort, string defProtocol, int waitTime) : this(new string[1] { server }, defPort, defProtocol, waitTime)
         {
         }
 

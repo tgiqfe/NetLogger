@@ -22,51 +22,51 @@ namespace NetLogger.Logs
             _collection.EnsureIndex(x => x.HeadLine, true);
         }
 
-        public int GetLastTextIndex(bool reload = false)
-        {
-            if (_cachedItem == null || reload)
-            {
-                var record = _collection.FindAll().ToArray();
-                this._cachedItem = record.Length > 0 ? 
-                    record[0] : 
-                    new DbManagerItem() { Date = DateTime.Today, HeadLine = HEAD_LINE};
-            }
-            return _cachedItem.LastTextIndex;
-        }
-
-        public int GetLastRemoteIndex(bool reload = false)
+        private void SetCachedItem(bool reload)
         {
             if (_cachedItem == null || reload)
             {
                 var record = _collection.FindAll().ToArray();
                 this._cachedItem = record.Length > 0 ?
                     record[0] :
-                    new DbManagerItem() { Date = DateTime.Today, HeadLine = HEAD_LINE };
+                    new DbManagerItem()
+                    {
+                        HeadLine = HEAD_LINE,
+                        TextIndex = 0,
+                        RemoteIndex = 0,
+                        Date = DateTime.Today
+                    };
             }
-            return _cachedItem.LastRemoteIndex;
+        }
+
+        public int GetTextIndex(bool reload = false)
+        {
+            SetCachedItem(reload);
+            return _cachedItem.TextIndex;
+        }
+
+        public int GetRemoteIndex(bool reload = false)
+        {
+            SetCachedItem(reload);
+            return _cachedItem.RemoteIndex;
         }
 
         public DateTime GetDate(bool reload = false)
         {
-            if (_cachedItem == null || reload)
-            {
-                var record = _collection.FindAll().ToArray();
-                this._cachedItem = record.Length > 0 ?
-                    record[0] :
-                    new DbManagerItem() { Date = DateTime.Today, HeadLine = HEAD_LINE };
-            }
+            SetCachedItem(reload);
             return _cachedItem.Date;
         }
 
-        public void SetLastTextIndex(int index)
+        public void IncreaseTextIndex()
         {
-            _cachedItem.LastTextIndex = index;
+            _cachedItem.TextIndex++;
         }
 
-        public void SetLastRemoteIndex(int index)
+        public void IncreaseRemoteIndex()
         {
-            _cachedItem.LastRemoteIndex = index;
+            _cachedItem.RemoteIndex++;
         }
+
 
         public void Upsert()
         {

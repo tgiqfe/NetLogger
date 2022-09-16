@@ -8,7 +8,8 @@ namespace NetLogger
             string logDir = @"D:\Test\Loggggg";
             string tableName = "TestLog";
 
-            using (var logger = new LoggerBase<LogbodyBase>(logDir, tableName, null))
+            using (var session = new LogServerSession("http://localhost:5000", 5000, "http", 10000))
+            using (var logger = new LoggerBase<LogbodyBase>(logDir, tableName, session))
             {
                 var worker = new BackgroundWorker();
                 worker.RepeatTargets.Add(logger);
