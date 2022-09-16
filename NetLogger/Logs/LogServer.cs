@@ -18,10 +18,6 @@ namespace NetLogger.Logs
 
         public bool Enabled { get; private set; }
         public string Uri { get { return $"{_protocol}://{_server}:{_port}"; } }
-        public HttpClient Client { get; private set; }
-
-        public string ApiUri { get { return $"{this.Uri}/api/logger/"; } }
-
 
         public LogServer(string server, int defPort, string defProtocol)
         {
@@ -81,7 +77,6 @@ namespace NetLogger.Logs
                     break;
                 }
                 await Task.Delay(interval);
-
                 count++;
                 if (count > maxTestCount) { break; }
             } while ((DateTime.Now - startTime).TotalMilliseconds > waitTime);

@@ -19,8 +19,7 @@ namespace NetLogServer.Logs
 
             if (!this._session.ContainsKey(table))
             {
-                //  ログ名もテーブル名に合わせる
-                var tempLogger = new LoggerBase<BsonDocument>(@"D:\Test\Loggggg", table);
+                var tempLogger = new LoggerBase<BsonDocument>(@"D:\Test\Loggggg", table, null);
                 _worker.RepeatTargets.Add(tempLogger);
                 this._session[table] = tempLogger;
             }

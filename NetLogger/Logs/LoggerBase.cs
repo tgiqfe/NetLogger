@@ -13,8 +13,9 @@ namespace NetLogger.Logs
     {
         protected static AsyncLock _lock = null;
 
-        public string LogDir = null;
-        public string TableName = null;
+        public string LogDir { get; set; }
+        public string TableName { get; set; }
+        public LogServerSession Session { get; set; }
 
         public string LogFilePath = null;
         public string LogDbPath = null;
@@ -32,7 +33,7 @@ namespace NetLogger.Logs
         protected ILiteCollection<T> _collection = null;
 
 
-        protected LogServerSession _session = null;
+
 
         /// <summary>
         /// DB情報管理
@@ -55,7 +56,7 @@ namespace NetLogger.Logs
             }
         }
 
-        public LoggerBase(string logDir, string tableName)
+        public LoggerBase(string logDir, string tableName, LogServerSession session)
         {
             _lock ??= new AsyncLock();
 
@@ -65,6 +66,7 @@ namespace NetLogger.Logs
                 Directory.CreateDirectory(logDir);
             }
             this.TableName = tableName;
+            this.Session = session;
 
             //  ログ出力先情報をセット
             SetTodayLog();
@@ -162,10 +164,7 @@ namespace NetLogger.Logs
                     {
                         string json = System.Text.Json.JsonSerializer.Serialize(item);
 
-                        bool ret = await _session.SendAsync(json);
-
-
-
+                        bool ret = await Session.SendAsync(TableName, json);
                     }
 
                 }
