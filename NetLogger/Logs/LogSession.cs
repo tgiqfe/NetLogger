@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    internal class LogTransporter
+    public class LogSession
     {
         private LogServer _logServer = null;
 
-        public LogTransporter()
+        public LogSession()
         {
 
         }

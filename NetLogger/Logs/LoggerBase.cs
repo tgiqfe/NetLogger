@@ -32,11 +32,7 @@ namespace NetLogger.Logs
         protected ILiteCollection<T> _collection = null;
 
 
-
-        protected HttpClient _client = null;
-
-        protected string _uri = null;
-
+        protected LogSession _session = null;
 
         /// <summary>
         /// DB情報管理
@@ -166,18 +162,10 @@ namespace NetLogger.Logs
                     {
                         string json = System.Text.Json.JsonSerializer.Serialize(item);
 
-                        using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
-                        using (var reponse = await _client.PostAsync(_uri, content))
-                        {
-                            if (reponse.StatusCode == System.Net.HttpStatusCode.OK)
-                            {
-                                _manager.SetLastRemoteIndex(++index);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
+                        bool ret = await _session.SendAsync(json);
+
+
+
                     }
 
                 }
