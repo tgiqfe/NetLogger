@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
 
@@ -24,6 +19,8 @@ namespace NetLogger.Logs
         public bool Enabled { get; private set; }
         public string Uri { get { return $"{_protocol}://{_server}:{_port}"; } }
         public HttpClient Client { get; private set; }
+
+        public string ApiUri { get { return $"{this.Uri}/api/logger/"; } }
 
         /// <summary>
         /// ログサーバーを1つだけ指定
@@ -105,14 +102,15 @@ namespace NetLogger.Logs
             do
             {
                 PingReply reply = await ping.SendPingAsync(_server, timeout);
-                if(reply.Status == IPStatus.Success)
+                if (reply.Status == IPStatus.Success)
                 {
                     _reachable = true;
                     break;
                 }
                 await Task.Delay(interval);
+
                 count++;
-                if(count > maxTestCount) { break; }
+                if (count > maxTestCount) { break; }
             } while ((DateTime.Now - startTime).TotalMilliseconds > waitTime);
             if (!_reachable) { return false; }
 

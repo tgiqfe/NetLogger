@@ -31,6 +31,13 @@ namespace NetLogger.Logs
         /// </summary>
         protected ILiteCollection<T> _collection = null;
 
+
+
+        protected HttpClient _client = null;
+
+        protected string _uri = null;
+
+
         /// <summary>
         /// DB情報管理
         /// </summary>
@@ -125,7 +132,7 @@ namespace NetLogger.Logs
         public async Task OutputTextAsync2()
         {
             int index = _manager.GetLastTextIndex(reload: true);
-            int count = _collection.FindAll().Count();
+            int count = _collection.FindAll().Count() - 1;
             if (index < count)
             {
                 using (await _lock.LockAsync())
@@ -144,17 +151,34 @@ namespace NetLogger.Logs
             }
         }
 
-        public async Task OutputRemoteAsync2(string json)
+
+
+        public async Task OutputRemoteAsync2()
         {
             int index = _manager.GetLastRemoteIndex(reload: true);
-            int count = _collection.FindAll().Count();
+            int count = _collection.FindAll().Count() - 1;
             if (index < count)
             {
                 using (await _lock.LockAsync())
                 {
                     var items = _collection.Query().Skip(index).ToArray();
-                    
-                    //  ★ここでリモートログ転送
+                    foreach (var item in items)
+                    {
+                        string json = System.Text.Json.JsonSerializer.Serialize(item);
+
+                        using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+                        using (var reponse = await _client.PostAsync(_uri, content))
+                        {
+                            if (reponse.StatusCode == System.Net.HttpStatusCode.OK)
+                            {
+                                _manager.SetLastRemoteIndex(++index);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
 
                 }
             }
