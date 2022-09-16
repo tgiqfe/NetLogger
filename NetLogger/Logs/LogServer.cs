@@ -22,39 +22,12 @@ namespace NetLogger.Logs
 
         public string ApiUri { get { return $"{this.Uri}/api/logger/"; } }
 
-        /// <summary>
-        /// ログサーバーを1つだけ指定
-        /// </summary>
-        /// <param name="server"></param>
-        /// <param name="defPort"></param>
-        /// <param name="defProtocol"></param>
-        public LogServer(string server, int defPort, string defProtocol, int waitTime)
+
+        public LogServer(string server, int defPort, string defProtocol)
         {
             ReadURI(server);
             if (_port == 0) _port = defPort;
             if (string.IsNullOrEmpty(_protocol)) _protocol = defProtocol;
-
-            TestConnect(waitTime).Wait();
-        }
-
-        /// <summary>
-        /// ログサーバーを複数指定
-        /// </summary>
-        /// <param name="servers"></param>
-        /// <param name="defPort"></param>
-        /// <param name="defProtocol"></param>
-        public LogServer(string[] servers, int defPort, string defProtocol, int waitTime)
-        {
-            var random = new Random();
-            string[] array = servers.OrderBy(x => random.Next()).ToArray();
-            foreach (var server in array)
-            {
-                ReadURI(server);
-                if (_port == 0) _port = defPort;
-                if (string.IsNullOrEmpty(_protocol)) _protocol = defProtocol;
-
-                TestConnect(waitTime).Wait();
-            }
         }
 
         /// <summary>
@@ -89,7 +62,7 @@ namespace NetLogger.Logs
         /// </summary>
         /// <param name="maxCount"></param>
         /// <returns></returns>
-        private async Task<bool> TestConnect(int waitTime)
+        public async Task TestConnect(int waitTime)
         {
             //  Pingチェック
             int interval = 1000;
@@ -112,7 +85,7 @@ namespace NetLogger.Logs
                 count++;
                 if (count > maxTestCount) { break; }
             } while ((DateTime.Now - startTime).TotalMilliseconds > waitTime);
-            if (!_reachable) { return false; }
+            if (!_reachable) { return; }
 
             //  TCP接続チェック
             using (var client = new TcpClient())
@@ -129,7 +102,8 @@ namespace NetLogger.Logs
                 }
                 catch { }
             }
-            return _connectable;
+
+            this.Enabled = _connectable;
         }
     }
 }

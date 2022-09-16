@@ -32,7 +32,7 @@ namespace NetLogger.Logs
         protected ILiteCollection<T> _collection = null;
 
 
-        protected LogSession _session = null;
+        protected LogServerSession _session = null;
 
         /// <summary>
         /// DB情報管理
