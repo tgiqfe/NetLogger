@@ -1,7 +1,6 @@
-﻿
-namespace NetLogger.Logs
+﻿namespace NetLogger
 {
-    public class LogbodyBase
+    public class TestLogbody
     {
         public DateTime Date { get; set; }
         public string HostName { get; set; }
@@ -12,7 +11,7 @@ namespace NetLogger.Logs
 
         public override string ToString()
         {
-            return $"[{this.Date.ToString("yyyy/MM/dd HH:mm:ss")}][{this.Level}] {this.Title} {this.Message}";
+            return $"[{Date.ToString("yyyy/MM/dd HH:mm:ss")}][{Level}] {Title} {Message}";
         }
     }
 }

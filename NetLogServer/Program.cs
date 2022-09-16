@@ -1,21 +1,11 @@
-using NetLogServer.Logs;
+using NetLogServer;
 using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-var options = new System.Text.Json.JsonSerializerOptions()
-{
-    //Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    IgnoreReadOnlyProperties = true,
-    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-    //WriteIndented = true,
-    //Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
-};
-
-
-var dlogManager = new DynamicLogManager();
+var dlogManager = new DynamicLog();
 
 #region Routing
 

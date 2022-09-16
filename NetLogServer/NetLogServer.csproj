@@ -7,8 +7,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\NetLogger\NetLogger.csproj" />
-		<Using Include="NetLogger"/>
-		<Using Include="NetLogger.Logs"/>
+		<Using Include="NetLogger" />
+		<Using Include="NetLogger.Logs" />
 	</ItemGroup>
 
 </Project>

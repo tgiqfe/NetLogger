@@ -1,15 +1,16 @@
-﻿
+﻿using NetLogger;
+
 namespace NetLogger
 {
     internal class TestClass
     {
         public static void Run()
         {
-            string logDir = @"D:\Test\Loggggg";
+            string logDir = @"D:\Test\Logggg1";
             string tableName = "TestLog";
 
             using (var session = new LogServerSession("http://localhost:5000", 5000, "http", 10000))
-            using (var logger = new LoggerBase<LogbodyBase>(logDir, tableName, session))
+            using (var logger = new LoggerBase<TestLogbody>(logDir, tableName, session))
             {
                 var worker = new BackgroundWorker();
                 worker.RepeatList.Add(logger);
@@ -39,9 +40,9 @@ namespace NetLogger
             }
         }
 
-        private static LogbodyBase CreateLog(LogLevel level, string title, string message)
+        private static TestLogbody CreateLog(LogLevel level, string title, string message)
         {
-            return new LogbodyBase()
+            return new TestLogbody()
             {
                 Date = DateTime.Now,
                 HostName = Environment.MachineName,
