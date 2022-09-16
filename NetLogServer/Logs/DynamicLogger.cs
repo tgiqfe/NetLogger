@@ -9,6 +9,7 @@ namespace NetLogServer.Logs
         {
         }
 
+        /*
         public async Task Write(string table, Stream stream)
         {
             if (string.IsNullOrEmpty(table)) { return; }
@@ -26,5 +27,6 @@ namespace NetLogServer.Logs
             }
             catch { }
         }
+        */
     }
 }

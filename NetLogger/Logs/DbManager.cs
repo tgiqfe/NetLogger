@@ -9,12 +9,17 @@ namespace NetLogger.Logs
 {
     public class DbManager
     {
+        #region Private parameter
+
         const string HEAD_LINE = "manager";
+
         const string MANAGER_TABLE = "mngtable";
 
         private ILiteCollection<DbManagerItem> _collection = null;
 
         private DbManagerItem _cachedItem = null;
+
+        #endregion
 
         public DbManager(LiteDatabase liteDB)
         {

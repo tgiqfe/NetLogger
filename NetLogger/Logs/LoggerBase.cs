@@ -32,18 +32,10 @@ namespace NetLogger.Logs
         /// </summary>
         protected ILiteCollection<T> _collection = null;
 
-
-
-
         /// <summary>
         /// DB情報管理
         /// </summary>
         private DbManager _manager = null;
-
-        /// <summary>
-        /// DBへ書き込み済み/未書き込み
-        /// </summary>
-        private bool _stored = false;
 
         #endregion
 
@@ -96,7 +88,6 @@ namespace NetLogger.Logs
             using (await _lock.LockAsync())
             {
                 _collection.Upsert(logBody);
-                _stored = true;
             }
         }
 
@@ -158,6 +149,11 @@ namespace NetLogger.Logs
         public async Task Work()
         {
             await OutputTextAsync();
+
+            if(this.Session != null)
+            {
+                await OutputRemoteAsync();
+            }
         }
 
         public void ResetDate()

@@ -37,7 +37,7 @@ namespace NetLogger.Logs
             string[] array = uris.OrderBy(x => random.Next()).ToArray();
             foreach (var uri in array)
             {
-                var _logServer = new LogServer(uri, defPort, defProtocol);
+                _logServer = new LogServer(uri, defPort, defProtocol);
                 _logServer.TestConnect(waitTime).Wait();
                 if (_logServer.Enabled)
                 {
@@ -52,6 +52,9 @@ namespace NetLogger.Logs
 
         public async Task<bool> SendAsync(string table, string json)
         {
+
+            Console.WriteLine($"{_logServer.Uri}/{API_URI}/{table}");
+
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
             using (var reponse = await _client.PostAsync($"{_logServer.Uri}/{API_URI}/{table}", content))
             {

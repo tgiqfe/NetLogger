@@ -12,7 +12,7 @@ namespace NetLogger
             using (var logger = new LoggerBase<LogbodyBase>(logDir, tableName, session))
             {
                 var worker = new BackgroundWorker();
-                worker.RepeatTargets.Add(logger);
+                worker.RepeatList.Add(logger);
 
                 int count = 1;
 

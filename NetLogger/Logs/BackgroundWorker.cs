@@ -8,14 +8,14 @@ namespace NetLogger.Logs
 {
     public class BackgroundWorker : IDisposable
     {
-        public bool Running = false;
-        public int Interval = 5000;
+        public bool Running { get; set; }
+        public int Interval { get; set; } = 5000;
 
-        public List<IRepeatable> RepeatTargets = null;
+        public List<IRepeatable> RepeatList = null;
 
         public BackgroundWorker()
         {
-            RepeatTargets = new();
+            RepeatList = new();
 
             Running = true;
             Run().ConfigureAwait(false);
@@ -25,7 +25,7 @@ namespace NetLogger.Logs
         {
             while (Running)
             {
-                foreach (var repeatTarget in RepeatTargets)
+                foreach (var repeatTarget in RepeatList)
                 {
                     //  通常Work
                     await repeatTarget.Work();

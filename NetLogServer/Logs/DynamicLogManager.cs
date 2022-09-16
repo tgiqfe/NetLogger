@@ -20,12 +20,16 @@ namespace NetLogServer.Logs
             if (!this._session.ContainsKey(table))
             {
                 var tempLogger = new LoggerBase<BsonDocument>(@"D:\Test\Loggggg", table, null);
-                _worker.RepeatTargets.Add(tempLogger);
+                _worker.RepeatList.Add(tempLogger);
                 this._session[table] = tempLogger;
             }
 
             try
             {
+                Console.WriteLine("==========");
+
+
+
                 var logger = _session[table];
                 using (var sr = new StreamReader(stream))
                 {
