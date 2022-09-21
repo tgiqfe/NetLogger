@@ -28,9 +28,11 @@ app.MapPost("/api/logger/{table}", (HttpContext context) =>
         var tempSession = new Session()
         {
             Table = table,
-            Logger = new LoggerBase<BsonDocument>(@"D:\Test\Loggggg", table, null),
+            Logger = new LoggerBase<BsonDocument>(@"D:\Test\Log_Server", table),
         };
+        sessions.Add(tempSession);
     }
+
     try
     {
         var session = sessions.First(x => x.Table == table);
@@ -41,7 +43,10 @@ app.MapPost("/api/logger/{table}", (HttpContext context) =>
             session.LastWriteTime = DateTime.Now;
         }
     }
-    catch { }
+    catch (Exception e)
+    {
+        Console.WriteLine(e);
+    }
 });
 
 #endregion

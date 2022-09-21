@@ -15,7 +15,7 @@ namespace NetLogger.Logs
 
         public string LogDir { get; set; }
         public string TableName { get; set; }
-        public LogServerSession Session { get; set; }
+        //public LogServerSession Session { get; set; }
 
         public string LogFilePath = null;
         public string LogDbPath = null;
@@ -37,6 +37,16 @@ namespace NetLogger.Logs
         /// </summary>
         private DbManager _manager = null;
 
+        /// <summary>
+        /// ログ転送先サーバ
+        /// </summary>
+        private LogServer _logServer = null;
+
+        /// <summary>
+        /// ログ転送用HttpClient
+        /// </summary>
+        private HttpClient _client = null;
+
         #endregion
 
         public bool? IsToday
@@ -48,20 +58,34 @@ namespace NetLogger.Logs
             }
         }
 
-        public LoggerBase(string logDir, string tableName, LogServerSession session)
+        public LoggerBase(string logDir, string tableName)
         {
-            _lock ??= new AsyncLock();
-
+            _lock = new AsyncLock();
             this.LogDir = logDir;
             if (!Directory.Exists(logDir))
             {
                 Directory.CreateDirectory(logDir);
             }
             this.TableName = tableName;
-            this.Session = session;
 
             //  ログ出力先情報をセット
             SetTodayLog();
+        }
+
+        public void SetLogServer(string[] uris, int defPort, string defProtocol, int waitTime)
+        {
+            Random random = new();
+            string[] array = uris.OrderBy(x => random.Next()).ToArray();
+            foreach (var uri in array)
+            {
+                _logServer = new LogServer(uri, defPort, defProtocol);
+                _logServer.TestConnect(waitTime).Wait();
+                if (_logServer.Enabled)
+                {
+                    _client = new HttpClient();
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -129,14 +153,19 @@ namespace NetLogger.Logs
                     foreach (var item in items)
                     {
                         string json = System.Text.Json.JsonSerializer.Serialize(item);
-                        bool ret = await Session.SendAsync(TableName, json);
-                        if (ret)
+
+                        using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+                        using (var response = await _client.PostAsync($"{_logServer.Uri}/api/logger/{TableName}", content))
                         {
-                            _manager.IncreaseRemoteIndex();
-                        }
-                        else
-                        {
-                            break;
+                            bool ret = response.StatusCode == System.Net.HttpStatusCode.OK;
+                            if (ret)
+                            {
+                                _manager.IncreaseRemoteIndex();
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
                     }
                     _manager.Upsert();
@@ -144,15 +173,13 @@ namespace NetLogger.Logs
             }
         }
 
-
-
         #region Repeatable
 
         public async Task Work()
         {
             await OutputTextAsync();
 
-            if (this.Session != null)
+            if (_client != null)
             {
                 await OutputRemoteAsync();
             }
@@ -171,6 +198,7 @@ namespace NetLogger.Logs
         {
             OutputTextAsync().Wait();
             if (_liteDB != null) { _liteDB.Dispose(); _liteDB = null; }
+            if (_client != null) { _client.Dispose(); _client = null; }
         }
 
         #endregion

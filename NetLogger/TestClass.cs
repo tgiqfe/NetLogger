@@ -6,12 +6,13 @@ namespace NetLogger
     {
         public static void Run()
         {
-            string logDir = @"D:\Test\Logggg1";
-            string tableName = "TestLog";
+            string logDir = @"D:\Test\Log_Client";
+            string tableName = "TestLogA";
 
-            using (var session = new LogServerSession("http://localhost:5000", 5000, "http", 10000))
-            using (var logger = new LoggerBase<TestLogbody>(logDir, tableName, session))
+            using (var logger = new LoggerBase<TestLogbody>(logDir, tableName))
             {
+                logger.SetLogServer(new string[] { "http://localhost:5000" }, 5000, "http", 10000);
+
                 var worker = new BackgroundWorker();
                 worker.RepeatList.Add(logger);
 

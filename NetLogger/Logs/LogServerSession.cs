@@ -47,9 +47,6 @@ namespace NetLogger.Logs
             }
         }
 
-
-
-
         public async Task<bool> SendAsync(string table, string json)
         {
 
@@ -61,8 +58,6 @@ namespace NetLogger.Logs
                 return reponse.StatusCode == System.Net.HttpStatusCode.OK;
             }
         }
-
-
 
         #region Close method
 
