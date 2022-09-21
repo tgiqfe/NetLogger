@@ -1,20 +1,19 @@
 ﻿namespace NetLogServer
 {
-    public class SessionCollection : IRepeatable
+    public class SessionManager : IRepeatable
     {
         private int _timeout = 3000;
 
         public List<Session> Sessions { get; set; }
 
-        public bool? IsToday => throw new NotImplementedException();
-
-        public void ResetDate()
+        public SessionManager()
         {
-            throw new NotImplementedException();
+            this.Sessions = new();
         }
 
         public Task Work()
         {
+            //  タイムアウト時間以上経過したセッションを破棄
             for (int i = this.Sessions.Count - 1; i >= 0; i--)
             {
                 var diff = Sessions[i].LastWriteTime - DateTime.Now;
@@ -24,6 +23,7 @@
                     this.Sessions.RemoveAt(i);
                 }
             }
+
             return Task.CompletedTask;
         }
     }

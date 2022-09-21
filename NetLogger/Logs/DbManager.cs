@@ -72,7 +72,6 @@ namespace NetLogger.Logs
             _cachedItem.RemoteIndex++;
         }
 
-
         public void Upsert()
         {
             if (_cachedItem != null)

@@ -8,8 +8,8 @@ namespace NetLogger.Logs
 {
     public interface IRepeatable
     {
-        bool? IsToday { get; }
+        //bool? IsToday { get; }
         Task Work();
-        void ResetDate();
+        //void ResetDate();
     }
 }

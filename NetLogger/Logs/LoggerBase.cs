@@ -15,8 +15,6 @@ namespace NetLogger.Logs
 
         public string LogDir { get; set; }
         public string TableName { get; set; }
-        //public LogServerSession Session { get; set; }
-
         public string LogFilePath = null;
         public string LogDbPath = null;
 
@@ -177,11 +175,19 @@ namespace NetLogger.Logs
 
         public async Task Work()
         {
+            //  ローカルログ出力
             await OutputTextAsync();
 
+            //  リモートログ転送
             if (_client != null)
             {
                 await OutputRemoteAsync();
+            }
+
+            //  日付リセット
+            if (_manager.GetDate() != DateTime.Today)
+            {
+                ResetDate();
             }
         }
 

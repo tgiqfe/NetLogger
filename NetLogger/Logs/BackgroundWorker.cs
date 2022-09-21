@@ -27,14 +27,16 @@ namespace NetLogger.Logs
             {
                 foreach (var repeatTarget in RepeatList)
                 {
-                    //  通常Work
+                    //  Work
                     await repeatTarget.Work();
 
+                    /*
                     //  日付リセット用処理
                     if (repeatTarget.IsToday == false)
                     {
                         repeatTarget.ResetDate();
                     }
+                    */
                 }
                 await Task.Delay(Interval);
             }

@@ -6,49 +6,61 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-var sessions = new List<Session>();
-
-#region Routing
-
-app.MapGet("/", () => "");
-app.MapPost("/", () => "");
-
-app.MapPost("/api/logger/{table}", (HttpContext context) =>
+using (var worker = new BackgroundWorker())
 {
-    var syncIOFeature = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpBodyControlFeature>();
-    if (syncIOFeature != null)
-    {
-        syncIOFeature.AllowSynchronousIO = true;
-    }
-    var table = context.Request.RouteValues["table"]?.ToString();
+    var manager = new SessionManager();
+    worker.RepeatList.Add(manager);
 
-    if (string.IsNullOrEmpty(table)) { return; }
-    if (!sessions.Any(x => x.Table == table))
-    {
-        var tempSession = new Session()
-        {
-            Table = table,
-            Logger = new LoggerBase<BsonDocument>(@"D:\Test\Log_Server", table),
-        };
-        sessions.Add(tempSession);
-    }
+    #region Routing
 
-    try
+    //  トップサイトへのGET通信 => 空白を返す
+    app.MapGet("/", () => "");
+
+    //  トップサイトへのPOST通信 => 空白を返す
+    app.MapPost("/", () => "");
+
+    //  ログ転送の受信
+    app.MapPost("/api/logger/{table}", (HttpContext context) =>
     {
-        var session = sessions.First(x => x.Table == table);
-        using (var sr = new StreamReader(context.Request.Body))
+
+        Console.WriteLine($"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}");
+
+
+        var syncIOFeature = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpBodyControlFeature>();
+        if (syncIOFeature != null)
         {
-            var doc = JsonSerializer.Deserialize(sr) as BsonDocument;
-            session.Logger.Write(doc);
-            session.LastWriteTime = DateTime.Now;
+            syncIOFeature.AllowSynchronousIO = true;
         }
-    }
-    catch (Exception e)
-    {
-        Console.WriteLine(e);
-    }
-});
+        var table = context.Request.RouteValues["table"]?.ToString();
 
-#endregion
+        if (string.IsNullOrEmpty(table)) { return; }
+        if (!manager.Sessions.Any(x => x.Table == table))
+        {
+            var tempSession = new Session()
+            {
+                Table = table,
+                Logger = new LoggerBase<BsonDocument>(@"D:\Test\Log_Server", table),
+            };
+            manager.Sessions.Add(tempSession);
+        }
 
-app.Run();
+        try
+        {
+            var session = manager.Sessions.First(x => x.Table == table);
+            using (var sr = new StreamReader(context.Request.Body))
+            {
+                var doc = JsonSerializer.Deserialize(sr) as BsonDocument;
+                session.Logger.Write(doc);
+                session.LastWriteTime = DateTime.Now;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    });
+
+    #endregion
+
+    app.Run();
+}
