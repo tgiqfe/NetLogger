@@ -79,6 +79,8 @@ namespace NetLogger.Logs
             _manager = new DbManager(_liteDB);
         }
 
+        #region Write log
+
         /// <summary>
         /// ログをDBに追記
         /// </summary>
@@ -90,6 +92,8 @@ namespace NetLogger.Logs
                 _collection.Upsert(logBody);
             }
         }
+
+        #endregion
 
         public async Task OutputTextAsync()
         {
