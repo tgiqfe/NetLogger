@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NetLogger.Logs
 {
-    public class LoggerBase<T> : IDisposable, IRepeatable
+    public class Logger<T> : IDisposable, IRepeatable
     {
         protected static AsyncLock _lock = null;
 
@@ -47,16 +47,7 @@ namespace NetLogger.Logs
 
         #endregion
 
-        public bool? IsToday
-        {
-            get
-            {
-                if (_manager == null) return null;
-                return _manager.GetDate() == DateTime.Today;
-            }
-        }
-
-        public LoggerBase(string logDir, string tableName)
+        public Logger(string logDir, string tableName)
         {
             _lock = new AsyncLock();
             this.LogDir = logDir;
@@ -67,7 +58,7 @@ namespace NetLogger.Logs
             this.TableName = tableName;
 
             //  ログ出力先情報をセット
-            SetTodayLog();
+            Init();
         }
 
         public void SetLogServer(string[] uris, int defPort, string defProtocol, int waitTime)
@@ -89,7 +80,7 @@ namespace NetLogger.Logs
         /// <summary>
         /// 本日の日付でログ出力先情報をセット
         /// </summary>
-        private void SetTodayLog()
+        private void Init()
         {
             string today = DateTime.Now.ToString("yyyyMMdd");
             this.LogFilePath = Path.Combine(LogDir, $"{TableName}_{today}.log");
@@ -194,7 +185,7 @@ namespace NetLogger.Logs
         public void ResetDate()
         {
             _liteDB.Dispose();
-            SetTodayLog();
+            Init();
         }
 
         #endregion

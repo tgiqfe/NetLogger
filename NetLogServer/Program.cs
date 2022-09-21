@@ -22,8 +22,8 @@ using (var worker = new BackgroundWorker())
     //  ログ転送の受信
     app.MapPost("/api/logger/{table}", (HttpContext context) =>
     {
-
-        Console.WriteLine($"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}");
+        //  デバッグ
+        //  Console.WriteLine($"{context.Connection.RemoteIpAddress}:{context.Connection.RemotePort}");
 
 
         var syncIOFeature = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpBodyControlFeature>();
@@ -39,7 +39,7 @@ using (var worker = new BackgroundWorker())
             var tempSession = new Session()
             {
                 Table = table,
-                Logger = new LoggerBase<BsonDocument>(@"D:\Test\Log_Server", table),
+                Logger = new NetLogger.Logs.Logger<BsonDocument>(@"D:\Test\Log_Server", table),
             };
             manager.Sessions.Add(tempSession);
         }

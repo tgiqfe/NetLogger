@@ -13,5 +13,40 @@
         {
             return $"[{Date.ToString("yyyy/MM/dd HH:mm:ss")}][{Level}] {Title} {Message}";
         }
+
+        #region Log write
+
+        public static LogLevel MinLevel = LogLevel.Info;
+
+        public static Logger<TestLogbody> Logger = null;
+
+        public static void Write(LogLevel level, string title, string message)
+        {
+            if(level >= MinLevel)
+            {
+                var logBody = new TestLogbody()
+                {
+                    Date = DateTime.Now,
+                    HostName = Environment.MachineName,
+                    UserName = Environment.UserName,
+                    Level = level,
+                    Title = title,
+                    Message = message,
+                };
+                Logger.Write(logBody);
+            }
+        }
+
+        public static void Write(string title, string message)
+        {
+            Write(LogLevel.Info, title, message);
+        }
+
+        public static void Write(string message)
+        {
+            Write(LogLevel.Info, "", message);
+        }
+
+        #endregion
     }
 }
