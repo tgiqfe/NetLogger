@@ -6,11 +6,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-var dlogManager = new DynamicLog();
-
-
-var sessions = new List<DynamicLogSession>();
-
+var sessions = new List<Session>();
 
 #region Routing
 
@@ -29,7 +25,7 @@ app.MapPost("/api/logger/{table}", (HttpContext context) =>
     if (string.IsNullOrEmpty(table)) { return; }
     if (!sessions.Any(x => x.Table == table))
     {
-        var tempSession = new DynamicLogSession()
+        var tempSession = new Session()
         {
             Table = table,
             Logger = new LoggerBase<BsonDocument>(@"D:\Test\Loggggg", table, null),
@@ -46,9 +42,6 @@ app.MapPost("/api/logger/{table}", (HttpContext context) =>
         }
     }
     catch { }
-
-
-    //dlogManager.Write(table, context.Request.Body);
 });
 
 #endregion

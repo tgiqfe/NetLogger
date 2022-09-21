@@ -1,7 +1,7 @@
 ﻿
 namespace NetLogServer
 {
-    public class DynamicLogSession
+    public class Session
     {
         public string Table { get; set; }
         public LoggerBase<LiteDB.BsonDocument> Logger { get; set; }

@@ -117,8 +117,6 @@ namespace NetLogger.Logs
             }
         }
 
-
-
         public async Task OutputRemoteAsync()
         {
             int index = _manager.GetRemoteIndex(reload: true);
@@ -154,7 +152,7 @@ namespace NetLogger.Logs
         {
             await OutputTextAsync();
 
-            if(this.Session != null)
+            if (this.Session != null)
             {
                 await OutputRemoteAsync();
             }
