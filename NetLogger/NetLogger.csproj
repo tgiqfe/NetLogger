@@ -8,8 +8,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="LiteDB" Version="5.0.12" />
-		<Using Include="NetLogger"/>
-		<Using Include="NetLogger.Logs"/>
+		<Using Include="NetLogger" />
+		<Using Include="NetLogger.Logs" />
 	</ItemGroup>
 
 </Project>
